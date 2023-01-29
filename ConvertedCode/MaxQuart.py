@@ -9,8 +9,13 @@ def maxQuart(matrix,percentile):
         percentile = 0.0
     
     [n, m] = matrix.shape
+    print(n,m)
     matrix = np.sort(matrix.reshape(n * m, 1))
     index = round(n * m * percentile)
-    index = max(index, 1)
+    index = max(index, 0)
+
+    if index != 0:
+        index -= 1
+
     ret = matrix[index]
     return ret
