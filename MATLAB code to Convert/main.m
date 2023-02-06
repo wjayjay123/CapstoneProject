@@ -2,7 +2,6 @@
 
 DatasetLocation = 'HDRim/';
 % EXRfiles = dir([DatasetLocation, '*.exr']);
-%EXRfiles = dir([DatasetLocation, '*.hdr']);
 EXRfiles = dir([DatasetLocation, 'moto.hdr']);
 len = length(EXRfiles);
 
@@ -12,7 +11,6 @@ for i = 1:len
     name = EXRfile_name(1:loc-1);
 %     hdrImg = read_exr([DatasetLocation, EXRfile_name]);
     hdrImg = double(hdrread([DatasetLocation, EXRfile_name]));
-    disp(hdrImg(1,1,1))
     hdrImg(hdrImg<=0) = eps;
    
     ldrImg = DCA_TMO(hdrImg);
