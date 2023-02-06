@@ -6,3 +6,5 @@ c = MaxQuart(a, 0.01);
 disp("result")
 disp(b)
 disp(c)
+
+disp(tvi(-1.45))
