@@ -40,5 +40,6 @@ end
 matrix = sort(reshape(matrix, n * m, 1));
 index = round(n * m * percentile);
 index = max([index 1]);
-ret = matrix(index);    
+ret = matrix(index);
+
 end
