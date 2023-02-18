@@ -2,6 +2,7 @@
 import numpy as np
 
 def tvi(intensity):
+    intensity = np.array([intensity])
     threshold = np.zeros(intensity.shape)
 
     idx = np.where(intensity < -3.94)

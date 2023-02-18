@@ -1,10 +1,3 @@
-a = [13;34;31;65;19;68];
+a = [10,20,30;40,50,60;70,80,90];
 
-b = MaxQuart(a, 0.99);
-c = MaxQuart(a, 0.01);
-
-disp("result")
-disp(b)
-disp(c)
-
-disp(tvi(-1.45))
+quantizeNL_float(a, 55,a)
