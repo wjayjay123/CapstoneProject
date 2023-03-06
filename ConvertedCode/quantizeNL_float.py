@@ -1,5 +1,6 @@
 #Imports
 import numpy as np
+from scipy.interpolate import interp1d
 import math
 import statistics
 import sys
@@ -89,4 +90,8 @@ def quantizeNL_float(y, nclust, lum):
         else:
             ind = lum0[(lum0 > lum[edges[i]-1]) & (lum0 <= lum[edges[i+1]-1])]
             mdata[i] = np.mean(ind)
-            print(mdata[i])
+    labels_mdata = np.linspace(1,256,num=nclust)
+    interp = interp1d(mdata, labels_mdata, kind='linear')
+    labels = interp(lum0)
+    
+    return labels, mdata, edges

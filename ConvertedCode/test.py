@@ -27,4 +27,7 @@ from quantizeNL_float import quantizeNL_float
 a = [[10,20,30],[40,50,60],[70,80,90]]
 # a = [[66.9567,7.4928,28.1919],[3.0966,90.4558,87.1903],[99.8430,60.6271,37.5480],[99.8430,60.6271,37.5480],[99.8430,60.6271,37.5480],[99.8430,60.6271,37.5480]]
 b = np.array(a)
-quantizeNL_float(b,3,b)
+c,d,e = quantizeNL_float(b,3,b)
+print(c)
+print(d)
+print(e)
