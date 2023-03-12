@@ -66,8 +66,10 @@ def quantizeNL_float(y, nclust, lum):
                 e2 = ssn - ssm - pow((sn - sm),2) / (n - m)
                 edges = np.insert(edges,idx+1,(k+m))
 
-                if(len(errors[:idx]) == 0):
+                if(len(errors[:idx]) == 0 and len(errors[idx+1:]) == 0):
                     errors = np.array([e1,e2])
+                elif(len(errors[:idx]) == 0):
+                    errors = np.insert(errors, idx-1,[e1,e2])
                 elif(len(errors[idx+1:]) == 0):
                     errors = errors[:idx]
                     errors = np.insert(errors,idx,[e1,e2])
