@@ -20,6 +20,7 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -28,6 +29,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.icu.util.Output;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -89,13 +91,6 @@ public class MainActivity extends AppCompatActivity {
                 PackageManager.PERMISSION_GRANTED
         );
 
-        //Start Python
-        if (! Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
-        }
-        //Create Python instance
-        Python py = Python.getInstance();
-
         browseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -112,16 +107,22 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Create Python Object
-                PyObject pythonObj = py.getModule("main"); //Python script name as input parameter
-                //Call Python Function
-                PyObject obj = pythonObj.callAttr("main", destFileName); //Python function name as input parameter
-                String imgStr = obj.toString();
-                byte data [] = android.util.Base64.decode(imgStr, Base64.DEFAULT);
-                Bitmap bmp = BitmapFactory.decodeByteArray(data,0,data.length);
-                BitmapTransfer.bitmap = bmp;
-                Intent intent = new Intent(MainActivity.this, ImageActivity.class);
-                startActivity(intent);
+//                //Start Python
+//                if (! Python.isStarted()) {
+//                    Python.start(new AndroidPlatform(MainActivity.this));
+//                }
+//                //Create Python instance
+//                Python py = Python.getInstance();
+//                //Create Python Object
+//                PyObject pythonObj = py.getModule("main"); //Python script name as input parameter
+//                //Call Python Function
+//                PyObject obj = pythonObj.callAttr("main", destFileName); //Python function name as input parameter
+//                String imgStr = obj.toString();
+//                byte data [] = android.util.Base64.decode(imgStr, Base64.DEFAULT);
+//                Bitmap bmp = BitmapFactory.decodeByteArray(data,0,data.length);
+//                BitmapTransfer.bitmap = bmp;
+                PythonAsync pythonAsync = new PythonAsync();
+                pythonAsync.execute();
             }
         });
     }
@@ -136,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 fileCursor.moveToFirst();
                 String fileName = fileCursor.getString(nameIndex);
-                String fileExt = getExt(fileName);
+                fileExt = getExt(fileName);
                 textView.setText(fileName);
                 copyFile(fileName, fileExt);
             }else{
@@ -246,6 +247,47 @@ public class MainActivity extends AppCompatActivity {
             return "." + extension;
         }else{
             return "";
+        }
+    }
+    private class PythonAsync extends AsyncTask<Void, Void, Void>{
+
+        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            //Start Python
+            if (! Python.isStarted()) {
+                Python.start(new AndroidPlatform(MainActivity.this));
+            }
+            //Create Python instance
+            Python py = Python.getInstance();
+            //Create Python Object
+            PyObject pythonObj = py.getModule("main"); //Python script name as input parameter
+            //Call Python Function
+            PyObject obj = pythonObj.callAttr("main", destFileName); //Python function name as input parameter
+            String imgStr = obj.toString();
+            byte data [] = android.util.Base64.decode(imgStr, Base64.DEFAULT);
+            Bitmap bmp = BitmapFactory.decodeByteArray(data,0,data.length);
+            BitmapTransfer.bitmap = bmp;
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog.setCancelable(false);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setMax(100);
+            progressDialog.setMessage("Converting In Progress...");
+            progressDialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            progressDialog.dismiss();
+            Intent intent = new Intent(MainActivity.this, ImageActivity.class);
+            startActivity(intent);
         }
     }
 }
