@@ -9,19 +9,10 @@ from os.path import dirname, join
 from PIL import Image
 import base64
 import io
-# from com.chaquo.python import Python
 
-hdrPath = "moto.hdr"
-
-# cv2.imwrite("test.png",ldrImg)
-
-def main(data):
-#     files_dir = str(Python.getPlatform().getApplication().getFilesDir())
-    filename = join(dirname(__file__), "moto.hdr")
-    tempInputFile = join(dirname(__file__),"temp.hdr")
-#     tempInputArr = np.frombyte(data)
-#     cv2.imwrite(tempInputFile,tempInputArr)
-    hdrImg = cv2.imread(filename, flags=cv2.IMREAD_ANYDEPTH)
+def main(fileName):
+    fileName = join(dirname(__file__),fileName)
+    hdrImg = cv2.imread(fileName, flags=cv2.IMREAD_ANYDEPTH)
     ldrImg = DCA_TMO(hdrImg)
     saveFileName = join(dirname(__file__), "test.png")
     cv2.imwrite(saveFileName,ldrImg)

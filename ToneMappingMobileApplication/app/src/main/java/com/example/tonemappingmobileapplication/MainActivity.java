@@ -16,6 +16,7 @@ import androidx.loader.content.CursorLoader;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -60,15 +61,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
     TextView textView;
     Button submitButton;
-    Button saveButton;
     Button browseButton;
-    ImageView imageView;
-    byte[] fileData;
+    String fileExt = "";
+    String destFileName = "";
     final int fileRequestCode = 99;
     final int STORAGE_PERMISSION_CODE = 100;
 
@@ -77,11 +79,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = (TextView) findViewById(R.id.TextViewTest);
-        submitButton = (Button) findViewById(R.id.ButtonTest);
-        saveButton  = (Button) findViewById(R.id.ButtonSave);
+        textView = (TextView) findViewById(R.id.InfoTextView);
+        submitButton = (Button) findViewById(R.id.ConvertButton);
         browseButton = (Button) findViewById(R.id.ButtonBrowse);
-        imageView = (ImageView) findViewById(R.id.ImageViewTest);
 
         ActivityCompat.requestPermissions(this, new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -115,20 +115,13 @@ public class MainActivity extends AppCompatActivity {
                 //Create Python Object
                 PyObject pythonObj = py.getModule("main"); //Python script name as input parameter
                 //Call Python Function
-                PyObject obj = pythonObj.callAttr("main",fileData); //Python function name as input parameter
+                PyObject obj = pythonObj.callAttr("main", destFileName); //Python function name as input parameter
                 String imgStr = obj.toString();
                 byte data [] = android.util.Base64.decode(imgStr, Base64.DEFAULT);
                 Bitmap bmp = BitmapFactory.decodeByteArray(data,0,data.length);
-                imageView.setImageBitmap(bmp);
-            }
-        });
-
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Bitmap bmp = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-                saveImage(bmp);
-                Toast.makeText(MainActivity.this, "Image Saved", Toast.LENGTH_SHORT).show();
+                BitmapTransfer.bitmap = bmp;
+                Intent intent = new Intent(MainActivity.this, ImageActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -143,8 +136,9 @@ public class MainActivity extends AppCompatActivity {
                 int nameIndex = fileCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 fileCursor.moveToFirst();
                 String fileName = fileCursor.getString(nameIndex);
+                String fileExt = getExt(fileName);
                 textView.setText(fileName);
-                copyFile(fileName);
+                copyFile(fileName, fileExt);
             }else{
                 Toast.makeText(MainActivity.this, "File is empty",Toast.LENGTH_SHORT);
             }
@@ -214,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void copyFile(String fileName){
+    public void copyFile(String fileName, String fileExt){
 
         StorageManager storageManager = (StorageManager) getSystemService(STORAGE_SERVICE);
         List<StorageVolume> storageVolumeList = storageManager.getStorageVolumes();
@@ -223,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
 
         File filesource = new File(storageVolume.getDirectory().getPath() + "/Download/" + fileName);
 //        textView.setText(storageVolume.getDirectory().getPath());
-
-        File filedestination = new File(getFilesDir().toString() + "/chaquopy/AssetFinder/app","temp.hdr");
+        destFileName = "temp" + fileExt;
+        File filedestination = new File(getFilesDir().toString() + "/chaquopy/AssetFinder/app",destFileName);
 
         try{
             InputStream inputStream = new FileInputStream(filesource);
@@ -243,22 +237,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void saveImage(Bitmap bmp){
-        OutputStream fos;
-        try{
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-                ContentResolver resolver = getContentResolver();
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME,"Image" + ".png");
-                contentValues.put(MediaStore.MediaColumns.MIME_TYPE,"Image/png");
-                Uri imgUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues);
-                fos = resolver.openOutputStream(Objects.requireNonNull(imgUri));
-                bmp.compress(Bitmap.CompressFormat.PNG,100,fos);
-                Objects.requireNonNull(fos);
-            }
-        }
-        catch (Exception e){
-            Log.d("Error",e.toString());
+    public String getExt(String fileName){
+        String patternString = "\\.([a-zA-Z0-9]+)$";
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(fileName);
+        if (matcher.find()) {
+            String extension = matcher.group(1);
+            return "." + extension;
+        }else{
+            return "";
         }
     }
 }
